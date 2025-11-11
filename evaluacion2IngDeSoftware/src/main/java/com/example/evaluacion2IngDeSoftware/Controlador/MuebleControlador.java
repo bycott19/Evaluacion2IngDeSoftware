@@ -13,46 +13,46 @@ import java.util.List;
 @CrossOrigin
 public class MuebleControlador {
 
-    private final MuebleServicio muebleSrv;
+    private final MuebleServicio muebleServicio;
 
     public MuebleControlador(MuebleServicio muebleSrv) {
-        this.muebleSrv = muebleSrv;
+        this.muebleServicio = muebleSrv;
     }
 
     // CREATE
     @PostMapping
     public ResponseEntity<Mueble> crear(@RequestBody Mueble mueble) {
-        Mueble creado = muebleSrv.crear(mueble);
+        Mueble creado = muebleServicio.crear(mueble);
         return ResponseEntity.created(URI.create("/api/muebles/" + creado.getId())).body(creado);
     }
 
     // READ ALL
     @GetMapping
     public List<Mueble> listar() {
-        return muebleSrv.listar();
+        return muebleServicio.listar();
     }
 
     // READ ONE
     @GetMapping("/{id}")
     public Mueble obtener(@PathVariable Long id) {
-        return muebleSrv.buscarPorId(id);
+        return muebleServicio.buscarPorId(id);
     }
 
     // UPDATE (PUT completo)
     @PutMapping("/{id}")
     public Mueble actualizar(@PathVariable Long id, @RequestBody Mueble datos) {
-        return muebleSrv.actualizar(id, datos);
+        return muebleServicio.actualizar(id, datos);
     }
 
     // SOFT DELETE: DESACTIVAR
     @PatchMapping("/{id}/desactivar")
     public Mueble desactivar(@PathVariable Long id) {
-        return muebleSrv.desactivar(id);
+        return muebleServicio.desactivar(id);
     }
 
     // REACTIVAR
     @PatchMapping("/{id}/activar")
     public Mueble activar(@PathVariable Long id) {
-        return muebleSrv.activar(id);
+        return muebleServicio.activar(id);
     }
 }

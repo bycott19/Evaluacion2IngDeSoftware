@@ -18,7 +18,7 @@ public class Mueble {
     @Column(name = "precio_base")
     private BigDecimal precioBase;
 
-    private Integer stock;                       // null = 0 (lo manejamos en servicio)
+    private Integer stock;
     @Enumerated(EnumType.STRING)
     private EstadoMueble estado;
 

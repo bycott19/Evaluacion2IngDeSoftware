@@ -9,11 +9,11 @@ public class Variante {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombre;                 // único si quieres, lo vemos después
+    private String nombre;
     @Column(name = "incremento_precio")
-    private BigDecimal incrementoPrecio;   // puede ser null → lo trataremos como 0 en servicios
+    private BigDecimal incrementoPrecio;
 
-    // getters/setters
+    // getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; }

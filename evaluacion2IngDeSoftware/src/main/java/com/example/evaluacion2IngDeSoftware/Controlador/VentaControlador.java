@@ -13,11 +13,11 @@ import java.util.List;
 public class VentaControlador {
 
     private final VentaServicio servicio;
-    private final VentaRepositorio repo;
+    private final VentaRepositorio repositorio;
 
     public VentaControlador(VentaServicio servicio, VentaRepositorio repo) {
         this.servicio = servicio;
-        this.repo = repo;
+        this.repositorio = repo;
     }
 
     @PostMapping("/confirmar")
@@ -28,7 +28,7 @@ public class VentaControlador {
 
     @GetMapping
     public List<Venta> listar() {
-        return repo.findAll();
+        return repositorio.findAll();
     }
 }
 

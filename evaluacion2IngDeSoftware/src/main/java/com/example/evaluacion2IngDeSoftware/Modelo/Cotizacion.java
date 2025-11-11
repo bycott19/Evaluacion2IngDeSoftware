@@ -15,13 +15,12 @@ public class Cotizacion {
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
-    private Boolean confirmada;         // null = false
-    private BigDecimal total;           // null = 0
+    private Boolean confirmada;
+    private BigDecimal total;
 
     @OneToMany(mappedBy = "cotizacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CotizacionItem> items = new ArrayList<>();
 
-    // getters/setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }

@@ -14,33 +14,30 @@ import java.util.List;
 import java.util.Scanner;
 
 @Component
-@Profile({"default","cli"}) // se ejecuta en default y en cli; tus tests usan @ActiveProfiles("test") y no se dispara
+@Profile({"default","cli"})
 public class ConsolaApp implements CommandLineRunner {
 
-    private final MuebleServicio muebleSrv;
-    private final VarianteServicio varianteSrv;
-    private final CotizacionServicio cotSrv;
-    private final VentaServicio ventaSrv;
+    private final MuebleServicio muebleServicio;
+    private final VarianteServicio varianteServicio;
+    private final CotizacionServicio cotizacionServicio;
+    private final VentaServicio ventaServicio;
 
-    public ConsolaApp(MuebleServicio muebleSrv,
-                      VarianteServicio varianteSrv,
-                      CotizacionServicio cotSrv,
-                      VentaServicio ventaSrv) {
-        this.muebleSrv = muebleSrv;
-        this.varianteSrv = varianteSrv;
-        this.cotSrv = cotSrv;
-        this.ventaSrv = ventaSrv;
+    public ConsolaApp(MuebleServicio muebleSrv, VarianteServicio varianteSrv, CotizacionServicio cotSrv, VentaServicio ventaSrv) {
+        this.muebleServicio = muebleSrv;
+        this.varianteServicio = varianteSrv;
+        this.cotizacionServicio = cotSrv;
+        this.ventaServicio = ventaSrv;
     }
 
     @Override
     public void run(String... args) {
         Scanner in = new Scanner(System.in);
         while (true) {
-            System.out.println("\n=== Mueblería (CLI minimal) ===");
-            System.out.println("1) Crear Variante");
-            System.out.println("2) Crear Mueble");
-            System.out.println("3) Crear Cotización");
-            System.out.println("4) Agregar Item a Cotización");
+            System.out.println("\n=== MUNÚ MUEBLERIA ISW ===");
+            System.out.println("1) Crear nueva Variante");
+            System.out.println("2) Crear nuevo Mueble");
+            System.out.println("3) Crear nueva Cotización");
+            System.out.println("4) Agregar un item a Cotización");
             System.out.println("5) Confirmar Cotización");
             System.out.println("6) Confirmar Venta desde Cotización");
             System.out.println("7) Listar Muebles");
@@ -55,13 +52,13 @@ public class ConsolaApp implements CommandLineRunner {
                     case "1" -> {
                         System.out.print("Nombre variante: ");
                         String nombre = in.nextLine().trim();
-                        System.out.print("Incremento de precio (ej 1500): ");
+                        System.out.print("Incremento de precio (por ejemplo: 1500): ");
                         BigDecimal inc = new BigDecimal(in.nextLine().trim());
 
                         Variante v = new Variante();
                         v.setNombre(nombre);
                         v.setIncrementoPrecio(inc);
-                        v = varianteSrv.crear(v);
+                        v = varianteServicio.crear(v);
                         System.out.println("OK -> Variante id=" + v.getId());
                     }
                     case "2" -> {
@@ -87,12 +84,12 @@ public class ConsolaApp implements CommandLineRunner {
                         m.setStock(stock);
                         m.setEstado(EstadoMueble.ACTIVO);
 
-                        m = muebleSrv.crear(m);
-                        System.out.println("OK -> Mueble id=" + m.getId());
+                        m = muebleServicio.crear(m);
+                        System.out.println("Mueble id=" + m.getId());
                     }
                     case "3" -> {
-                        Cotizacion c = cotSrv.crear();
-                        System.out.println("OK -> Cotización id=" + c.getId());
+                        Cotizacion c = cotizacionServicio.crear();
+                        System.out.println("Cotización id=" + c.getId());
                     }
                     case "4" -> {
                         System.out.print("ID cotización: ");
@@ -105,22 +102,22 @@ public class ConsolaApp implements CommandLineRunner {
                         System.out.print("Cantidad: ");
                         int cantidad = Integer.parseInt(in.nextLine().trim());
 
-                        cotSrv.agregarItem(cotId, muebleId, varId, cantidad);
-                        cotSrv.recalcular(cotId);
-                        System.out.println("OK -> Item agregado y total recalculado.");
+                        cotizacionServicio.agregarItem(cotId, muebleId, varId, cantidad);
+                        cotizacionServicio.recalcular(cotId);
+                        System.out.println("Item agregado y total recalculado.");
                     }
                     case "5" -> {
                         System.out.print("ID cotización: ");
                         long cotId = Long.parseLong(in.nextLine().trim());
-                        Cotizacion c = cotSrv.confirmar(cotId);
-                        System.out.println("OK -> Cotización confirmada. Total=" + c.getTotal());
+                        Cotizacion c = cotizacionServicio.confirmar(cotId);
+                        System.out.println("Cotización confirmada. Total=" + c.getTotal());
                     }
                     case "6" -> {
                         // dentro del case 6:
                         try {
                             System.out.print("ID cotización confirmada: ");
                             long id = Long.parseLong(in.nextLine().trim());
-                            var v = ventaSrv.confirmarVentaDesdeCotizacion(id);
+                            var v = ventaServicio.confirmarVentaDesdeCotizacion(id);
                             System.out.println("Venta confirmada (id = " + v.getId() + ").");
                         } catch (Exception ex) {
                             System.out.println("Error: " + ex.getMessage());
@@ -128,7 +125,7 @@ public class ConsolaApp implements CommandLineRunner {
 
                     }
                     case "7" -> {
-                        List<Mueble> lista = muebleSrv.listar();
+                        List<Mueble> lista = muebleServicio.listar();
                         if (lista.isEmpty()) {
                             System.out.println("(sin muebles)");
                         } else {
@@ -142,17 +139,17 @@ public class ConsolaApp implements CommandLineRunner {
                     case "8" -> {
                         System.out.print("ID mueble a desactivar: ");
                         long id = Long.parseLong(in.nextLine().trim());
-                        Mueble m = muebleSrv.desactivar(id);
+                        Mueble m = muebleServicio.desactivar(id);
                         System.out.println("OK -> Desactivado: id=" + m.getId() + " estado=" + m.getEstado());
                     }
                     case "9" -> {
                         System.out.print("ID mueble a activar: ");
                         long id = Long.parseLong(in.nextLine().trim());
-                        Mueble m = muebleSrv.activar(id);
+                        Mueble m = muebleServicio.activar(id);
                         System.out.println("OK -> Activado: id=" + m.getId() + " estado=" + m.getEstado());
                     }
                     case "0" -> {
-                        System.out.println("Saliendo...");
+                        System.out.println("Adios");
                         System.exit(0);
                     }
                     default -> System.out.println("Opción inválida.");

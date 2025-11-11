@@ -12,7 +12,6 @@ public class CotizacionItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Evita recursión infinita al serializar Cotizacion -> items -> cotizacion -> ...
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "cotizacion_id")
@@ -24,14 +23,14 @@ public class CotizacionItem {
 
     @ManyToOne
     @JoinColumn(name = "variante_id")
-    private Variante variante; // puede ser null
+    private Variante variante;
 
-    private Integer cantidad; // null = 1 (lo tratamos en servicio)
+    private Integer cantidad;
 
     @Column(name = "precio_unitario_aplicado")
-    private BigDecimal precioUnitarioAplicado; // precio final por unidad (base + incremento variante)
+    private BigDecimal precioUnitarioAplicado;
 
-    private BigDecimal subtotal; // precioUnitarioAplicado * cantidad
+    private BigDecimal subtotal;
 
     // Getters & Setters
     public Long getId() { return id; }
