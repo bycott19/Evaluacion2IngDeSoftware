@@ -2,6 +2,7 @@ package com.example.evaluacion2IngDeSoftware.Servicios;
 
 import com.example.evaluacion2IngDeSoftware.Modelo.*;
 import com.example.evaluacion2IngDeSoftware.Repositorio.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,20 +13,14 @@ import java.util.Iterator;
 @Service
 public class CotizacionServicio {
 
-    private final CotizacionRepositorio cotRepo;
-    private final CotizacionItemRepositorio itemRepo;
-    private final MuebleRepositorio muebleRepo;
-    private final VarianteRepositorio varianteRepo;
-
-    public CotizacionServicio(CotizacionRepositorio cotRepo,
-                              CotizacionItemRepositorio itemRepo,
-                              MuebleRepositorio muebleRepo,
-                              VarianteRepositorio varianteRepo) {
-        this.cotRepo = cotRepo;
-        this.itemRepo = itemRepo;
-        this.muebleRepo = muebleRepo;
-        this.varianteRepo = varianteRepo;
-    }
+    @Autowired
+    private CotizacionRepositorio cotizacionRepositorio;
+    @Autowired
+    private CotizacionItemRepositorio cotizacionItemRepositorio;
+    @Autowired
+    private MuebleRepositorio muebleRepositorio;
+    @Autowired
+    private VarianteRepositorio varianteRepositorio;
 
     @Transactional
     public Cotizacion crear() {
@@ -33,11 +28,14 @@ public class CotizacionServicio {
         c.setFechaCreacion(LocalDateTime.now());
         c.setConfirmada(Boolean.FALSE);
         c.setTotal(BigDecimal.ZERO);
-        return cotRepo.save(c);
+        return cotizacionRepositorio.save(c);
     }
 
+    @Transactional(readOnly = true)
     public Cotizacion obtener(Long id) {
-        return cotRepo.findById(id).orElseThrow(() -> new RuntimeException("Cotización no encontrada: " + id));
+        Cotizacion c = cotizacionRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Cotización no encontrada: " + id));
+        c.getItems().size();
+        return c;
     }
 
     @Transactional
@@ -45,14 +43,18 @@ public class CotizacionServicio {
         if (cantidad == null || cantidad <= 0) throw new RuntimeException("Cantidad inválida");
 
         Cotizacion c = obtener(cotizacionId);
-        if (Boolean.TRUE.equals(c.getConfirmada())) throw new RuntimeException("La cotización ya está confirmada");
+        if (Boolean.TRUE.equals(c.getConfirmada())) throw new RuntimeException("La cotización ya está confirmada y no se puede modificar.");
 
-        Mueble m = muebleRepo.findById(muebleId)
+        Mueble m = muebleRepositorio.findById(muebleId)
                 .orElseThrow(() -> new RuntimeException("Mueble no encontrado: " + muebleId));
+
+        if (m.getEstado() == EstadoMueble.INACTIVO) {
+            throw new RuntimeException("El mueble '" + m.getNombre() + "' no está disponible por el momento.");
+        }
 
         Variante v = null;
         if (varianteId != null) {
-            v = varianteRepo.findById(varianteId)
+            v = varianteRepositorio.findById(varianteId)
                     .orElseThrow(() -> new RuntimeException("Variante no encontrada: " + varianteId));
         }
 
@@ -71,13 +73,13 @@ public class CotizacionServicio {
 
         c.getItems().add(it);
         recalcularTotalInterno(c);
-        return cotRepo.save(c);
+        return cotizacionRepositorio.save(c);
     }
 
     @Transactional
     public Cotizacion quitarItem(Long cotizacionId, Long itemId) {
         Cotizacion c = obtener(cotizacionId);
-        if (Boolean.TRUE.equals(c.getConfirmada())) throw new RuntimeException("La cotización ya está confirmada");
+        if (Boolean.TRUE.equals(c.getConfirmada())) throw new RuntimeException("La cotización ya está confirmada y no se puede modificar.");
 
         Iterator<CotizacionItem> it = c.getItems().iterator();
         boolean removed = false;
@@ -85,29 +87,27 @@ public class CotizacionServicio {
             CotizacionItem ci = it.next();
             if (ci.getId() != null && ci.getId().equals(itemId)) {
                 it.remove();
-                itemRepo.deleteById(itemId);
                 removed = true;
                 break;
             }
         }
-        if (!removed) throw new RuntimeException("Item no encontrado en la cotización");
+
+        if (!removed) {
+            boolean found = c.getItems().removeIf(item -> item.getId() != null && item.getId().equals(itemId));
+            if (!found) {
+                throw new RuntimeException("Item no encontrado ("+itemId+") en la cotización");
+            }
+        }
+
         recalcularTotalInterno(c);
-        return cotRepo.save(c);
+        return cotizacionRepositorio.save(c);
     }
 
     @Transactional
     public Cotizacion recalcular(Long cotizacionId) {
         Cotizacion c = obtener(cotizacionId);
         recalcularTotalInterno(c);
-        return cotRepo.save(c);
-    }
-
-    @Transactional
-    public Cotizacion confirmar(Long cotizacionId) {
-        Cotizacion c = obtener(cotizacionId);
-        if (c.getItems().isEmpty()) throw new RuntimeException("La cotización no tiene items");
-        c.setConfirmada(Boolean.TRUE);
-        return cotRepo.save(c);
+        return cotizacionRepositorio.save(c);
     }
 
     private void recalcularTotalInterno(Cotizacion c) {

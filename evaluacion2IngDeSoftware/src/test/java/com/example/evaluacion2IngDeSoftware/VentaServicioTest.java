@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
-import java.text.Normalizer;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
@@ -21,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 class VentaServicioTest {
 
-    @Autowired CotizacionServicio cotSrv;
-    @Autowired VentaServicio ventaSrv;
-    @Autowired MuebleRepositorio muebleRepo;
+    @Autowired CotizacionServicio cotizacionServicio;
+    @Autowired VentaServicio ventaServicio;
+    @Autowired MuebleRepositorio muebleRepositorio;
 
     private Mueble mueble;
 
@@ -42,58 +39,46 @@ class VentaServicioTest {
         mueble.setEstado(EstadoMueble.ACTIVO);
         mueble.setTamano(Tamano.GRANDE);
         mueble.setMaterial("Roble");
-        mueble = muebleRepo.save(mueble);
+        mueble = muebleRepositorio.save(mueble);
     }
 
     @Test
-    void confirmarVenta_descuentaStock_ok() {
-        Cotizacion c = cotSrv.crear();
-        cotSrv.agregarItem(c.getId(), mueble.getId(), null, 2);
-        c = cotSrv.confirmar(c.getId());
-
-        Venta v = ventaSrv.confirmarVentaDesdeCotizacion(c.getId());
-
+    void testVentaOkDescuentaStock() {
+        Cotizacion c = cotizacionServicio.crear();
+        cotizacionServicio.agregarItem(c.getId(), mueble.getId(), null, 2);
+        Venta v = ventaServicio.confirmarVentaDesdeCotizacion(c.getId());
         assertNotNull(v.getId());
-        assertBdEq("40000.00", v.getTotal()); // 20000 * 2
+        assertBdEq("40000.00", v.getTotal());
 
-        Mueble actualizado = muebleRepo.findById(mueble.getId()).orElseThrow();
-        assertEquals(3, actualizado.getStock()); // 5 - 2
+        Mueble actualizado = muebleRepositorio.findById(mueble.getId()).orElseThrow();
+        assertEquals(3, actualizado.getStock());
+
+        Cotizacion cActualizada = cotizacionServicio.obtener(c.getId());
+        assertTrue(cActualizada.getConfirmada());
     }
 
     @Test
-    void confirmarVenta_sinConfirmarCotizacion_lanza() {
-        Cotizacion c = cotSrv.crear();
-        cotSrv.agregarItem(c.getId(), mueble.getId(), null, 1);
-
-        // usar id "efectivamente final" para la lambda
+    void testErrorVentaVacia() {
+        Cotizacion c = cotizacionServicio.crear();
         final Long cotId = c.getId();
-
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> ventaSrv.confirmarVentaDesdeCotizacion(cotId));
+                () -> ventaServicio.confirmarVentaDesdeCotizacion(cotId));
 
-        // normalizamos para no depender de acentos/variantes del mensaje
-        String norm = Normalizer.normalize(ex.getMessage(), Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase();
-
-        assertTrue(norm.contains("confirm"), "Se esperaba un mensaje pidiendo confirmar la cotizacion. Mensaje: " + ex.getMessage());
+        assertTrue(ex.getMessage().toLowerCase().contains("no tiene items"));
     }
 
+
     @Test
-    void ventaConStockInsuficiente_lanza() {
-        // stock 5, intentamos vender 10
-        Cotizacion c = cotSrv.crear();
-        cotSrv.agregarItem(c.getId(), mueble.getId(), null, 10);
-        c = cotSrv.confirmar(c.getId());
+    void testErrorStockInsuficiente() {
+        Cotizacion c = cotizacionServicio.crear();
+        cotizacionServicio.agregarItem(c.getId(), mueble.getId(), null, 10);
 
         final Long cotId = c.getId();
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> ventaSrv.confirmarVentaDesdeCotizacion(cotId));
+                () -> ventaServicio.confirmarVentaDesdeCotizacion(cotId));
 
-        String norm = Normalizer.normalize(ex.getMessage(), Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase();
+        String norm = ex.getMessage().toLowerCase();
         assertTrue(norm.contains("stock"), "Se esperaba error relacionado a stock insuficiente. Mensaje: " + ex.getMessage());
     }
 }

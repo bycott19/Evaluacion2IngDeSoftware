@@ -13,7 +13,6 @@ public class Variante {
     @Column(name = "incremento_precio")
     private BigDecimal incrementoPrecio;
 
-    // getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; }

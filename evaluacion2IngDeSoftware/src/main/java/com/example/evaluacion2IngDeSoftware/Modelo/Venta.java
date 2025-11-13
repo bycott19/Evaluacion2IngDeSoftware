@@ -19,7 +19,6 @@ public class Venta {
 
     private BigDecimal total;
 
-    // getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Cotizacion getCotizacion() { return cotizacion; }

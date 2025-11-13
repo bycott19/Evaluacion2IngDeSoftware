@@ -2,6 +2,7 @@ package com.example.evaluacion2IngDeSoftware.Controlador;
 
 import com.example.evaluacion2IngDeSoftware.Modelo.Variante;
 import com.example.evaluacion2IngDeSoftware.Servicios.VarianteServicio;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,11 +12,8 @@ import java.util.List;
 @RequestMapping("/api/variantes")
 public class VarianteControlador {
 
-    private final VarianteServicio servicio;
-
-    public VarianteControlador(VarianteServicio servicio) {
-        this.servicio = servicio;
-    }
+    @Autowired
+    private VarianteServicio servicio;
 
     @GetMapping
     public List<Variante> listar() { return servicio.listar(); }

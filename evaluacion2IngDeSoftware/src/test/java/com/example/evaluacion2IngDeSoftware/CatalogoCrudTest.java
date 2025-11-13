@@ -24,8 +24,7 @@ class CatalogoCrudTest {
     MuebleRepositorio muebleRepo;
 
     @Test
-    void crudBasicoMueble_borradoLogico() {
-        // CREATE
+    void crudMueble() {
         Mueble m = new Mueble();
         m.setNombre("Mesa Pino");
         m.setTipo(TipoMueble.MESA);
@@ -39,12 +38,10 @@ class CatalogoCrudTest {
         Long id = m.getId();
         assertNotNull(id, "Debe generar id al crear");
 
-        // READ
         Mueble obtenido = muebleRepo.findById(id).orElseThrow();
         assertEquals("Mesa Pino", obtenido.getNombre());
         assertEquals(EstadoMueble.ACTIVO, obtenido.getEstado());
 
-        // UPDATE (precio y stock)
         obtenido.setPrecioBase(new BigDecimal("47000"));
         obtenido.setStock(9);
         muebleRepo.save(obtenido);
@@ -53,16 +50,14 @@ class CatalogoCrudTest {
         assertEquals(0, actualizado.getPrecioBase().compareTo(new BigDecimal("47000")));
         assertEquals(9, actualizado.getStock());
 
-        // "DELETE" LÓGICO: desactivar
         actualizado.setEstado(EstadoMueble.INACTIVO);
         muebleRepo.save(actualizado);
         Mueble inactivo = muebleRepo.findById(id).orElseThrow();
-        assertEquals(EstadoMueble.INACTIVO, inactivo.getEstado(), "Debe quedar INACTIVO al 'borrar'");
+        assertEquals(EstadoMueble.INACTIVO, inactivo.getEstado(), "Debe quedar INACTIVO al borrar");
 
-        // "UNDELETE": activar nuevamente
         inactivo.setEstado(EstadoMueble.ACTIVO);
         muebleRepo.save(inactivo);
         Mueble reactivado = muebleRepo.findById(id).orElseThrow();
-        assertEquals(EstadoMueble.ACTIVO, reactivado.getEstado(), "Debe volver a ACTIVO al 'restaurar'");
+        assertEquals(EstadoMueble.ACTIVO, reactivado.getEstado(), "Debe volver a ACTIVO al restaurar");
     }
 }

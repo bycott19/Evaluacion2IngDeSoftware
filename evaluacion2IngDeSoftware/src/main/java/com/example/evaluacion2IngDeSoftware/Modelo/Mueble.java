@@ -34,7 +34,6 @@ public class Mueble {
             inverseJoinColumns = @JoinColumn(name = "variante_id"))
     private Set<Variante> variantes = new LinkedHashSet<>();
 
-    // getters/setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; }

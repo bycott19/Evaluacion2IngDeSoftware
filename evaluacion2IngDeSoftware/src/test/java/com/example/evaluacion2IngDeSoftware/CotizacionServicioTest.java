@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 class CotizacionServicioTest {
 
-    @Autowired CotizacionServicio cotSrv;
-    @Autowired MuebleRepositorio muebleRepo;
-    @Autowired VarianteRepositorio varianteRepo;
+    @Autowired CotizacionServicio cotizacionServicio;
+    @Autowired MuebleRepositorio muebleRepositorio;
+    @Autowired VarianteRepositorio varianteRepositorio;
 
     private Mueble mueble;
     private Variante variante;
@@ -42,58 +42,41 @@ class CotizacionServicioTest {
         mueble.setEstado(EstadoMueble.ACTIVO);
         mueble.setTamano(Tamano.MEDIANO);
         mueble.setMaterial("Pino");
-        mueble = muebleRepo.save(mueble);
+        mueble = muebleRepositorio.save(mueble);
 
         variante = new Variante();
         variante.setNombre("PREMIUM");
         variante.setIncrementoPrecio(new BigDecimal("1500"));
-        variante = varianteRepo.save(variante);
+        variante = varianteRepositorio.save(variante);
     }
 
     @Test
-    void crearCotizacion_ok() {
-        Cotizacion c = cotSrv.crear();
+    void crearCotizacionTest() {
+        Cotizacion c = cotizacionServicio.crear();
         assertNotNull(c.getId());
         assertFalse(Boolean.TRUE.equals(c.getConfirmada()));
         assertNotNull(c.getTotal());
     }
 
     @Test
-    void agregarItem_y_recalcular_total_conVariante_ok() {
-        Cotizacion c = cotSrv.crear();
-        c = cotSrv.agregarItem(c.getId(), mueble.getId(), variante.getId(), 2);
-        // (10000 + 1500) * 2 = 23000
+    void TestAgregarItemConVariante() {
+        Cotizacion c = cotizacionServicio.crear();
+        c = cotizacionServicio.agregarItem(c.getId(), mueble.getId(), variante.getId(), 2);
         assertBdEq("23000.00", c.getTotal());
     }
 
     @Test
-    void agregarItem_y_recalcular_total_sinVariante_ok() {
-        Cotizacion c = cotSrv.crear();
-        c = cotSrv.agregarItem(c.getId(), mueble.getId(), null, 3);
-        // 10000 * 3 = 30000
+    void testAgregarItemSinVariante() {
+        Cotizacion c = cotizacionServicio.crear();
+        c = cotizacionServicio.agregarItem(c.getId(), mueble.getId(), null, 3);
         assertBdEq("30000.00", c.getTotal());
     }
 
     @Test
-    void agregarItem_cantidadInvalida_lanza() {
-        Cotizacion c = cotSrv.crear();
+    void testErrorCantidadCero() {
+        Cotizacion c = cotizacionServicio.crear();
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> cotSrv.agregarItem(c.getId(), mueble.getId(), null, 0));
+                () -> cotizacionServicio.agregarItem(c.getId(), mueble.getId(), null, 0));
         assertTrue(ex.getMessage().toLowerCase().contains("cantidad"));
-    }
-
-    @Test
-    void confirmar_sin_items_lanza() {
-        Cotizacion c = cotSrv.crear();
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> cotSrv.confirmar(c.getId()));
-        assertTrue(ex.getMessage().toLowerCase().contains("no tiene items"));
-    }
-
-    @Test
-    void confirmar_con_items_ok() {
-        Cotizacion c = cotSrv.crear();
-        cotSrv.agregarItem(c.getId(), mueble.getId(), null, 1);
-        c = cotSrv.confirmar(c.getId());
-        assertTrue(Boolean.TRUE.equals(c.getConfirmada()));
     }
 }

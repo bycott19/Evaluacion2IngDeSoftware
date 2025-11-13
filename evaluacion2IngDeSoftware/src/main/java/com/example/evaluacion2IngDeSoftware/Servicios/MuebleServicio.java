@@ -3,76 +3,81 @@ package com.example.evaluacion2IngDeSoftware.Servicios;
 import com.example.evaluacion2IngDeSoftware.Modelo.EstadoMueble;
 import com.example.evaluacion2IngDeSoftware.Modelo.Mueble;
 import com.example.evaluacion2IngDeSoftware.Repositorio.MuebleRepositorio;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class MuebleServicio {
 
-    private final MuebleRepositorio muebleRepo;
+    @Autowired
+    private MuebleRepositorio muebleRepositorio;
 
-    public MuebleServicio(MuebleRepositorio muebleRepo) {
-        this.muebleRepo = muebleRepo;
-    }
-
-    // Crear
+    @Transactional
     public Mueble crear(Mueble m) {
-        // por claridad, si no viene estado lo dejamos ACTIVO
         if (m.getEstado() == null) {
             m.setEstado(EstadoMueble.ACTIVO);
         }
-        // evitar que el cliente “imponga” IDs
         m.setId(null);
-        return muebleRepo.save(m);
+        return muebleRepositorio.save(m);
     }
 
-    // Leer todos
+    @Transactional(readOnly = true)
     public List<Mueble> listar() {
-        return muebleRepo.findAll();
+        return muebleRepositorio.findAll();
     }
 
-    // Leer uno
+    @Transactional(readOnly = true)
+    public List<Mueble> listarActivos() {
+        return muebleRepositorio.findByEstado(EstadoMueble.ACTIVO);
+    }
+
+    @Transactional(readOnly = true)
     public Mueble buscarPorId(Long id) {
-        return muebleRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mueble id " + id + " no existe"));
+        Mueble m = muebleRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("El Mueble con id " + id + " no existe"));
+
+        m.getVariantes().size();
+
+        return m;
     }
 
-    // Actualizar (PUT completo)
+    @Transactional
     public Mueble actualizar(Long id, Mueble datos) {
         Mueble existente = buscarPorId(id);
 
-        // Actualizamos campos básicos; si prefieres “parcial”, avísame y lo paso a PATCH-like
         existente.setNombre(datos.getNombre());
         existente.setTipo(datos.getTipo());
         existente.setTamano(datos.getTamano());
         existente.setPrecioBase(datos.getPrecioBase());
         existente.setStock(datos.getStock());
         existente.setMaterial(datos.getMaterial());
-        // el estado normalmente se maneja con activar/desactivar, pero si lo envían lo respetamos
+
         if (datos.getEstado() != null) {
             existente.setEstado(datos.getEstado());
         }
 
-        return muebleRepo.save(existente);
+        return muebleRepositorio.save(existente);
     }
 
-    // Desactivar (soft delete)
+    @Transactional
     public Mueble desactivar(Long id) {
         Mueble m = buscarPorId(id);
         if (m.getEstado() != EstadoMueble.INACTIVO) {
             m.setEstado(EstadoMueble.INACTIVO);
-            m = muebleRepo.save(m);
+            m = muebleRepositorio.save(m);
         }
         return m;
     }
 
-    // Activar
+    @Transactional
     public Mueble activar(Long id) {
         Mueble m = buscarPorId(id);
         if (m.getEstado() != EstadoMueble.ACTIVO) {
             m.setEstado(EstadoMueble.ACTIVO);
-            m = muebleRepo.save(m);
+            m = muebleRepositorio.save(m);
         }
         return m;
     }

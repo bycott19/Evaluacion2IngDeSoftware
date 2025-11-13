@@ -2,6 +2,7 @@ package com.example.evaluacion2IngDeSoftware.Controlador;
 
 import com.example.evaluacion2IngDeSoftware.Modelo.Cotizacion;
 import com.example.evaluacion2IngDeSoftware.Servicios.CotizacionServicio;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,11 +10,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/cotizaciones")
 public class CotizacionControlador {
 
-    private final CotizacionServicio servicio;
-
-    public CotizacionControlador(CotizacionServicio servicio) {
-        this.servicio = servicio;
-    }
+    @Autowired
+    private CotizacionServicio servicio;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -26,7 +24,6 @@ public class CotizacionControlador {
         return servicio.obtener(id);
     }
 
-    // Agregar item: recibe ids por query params para mantener simple
     @PostMapping("/{id}/items")
     public Cotizacion agregarItem(@PathVariable Long id,
                                   @RequestParam Long muebleId,
@@ -43,10 +40,5 @@ public class CotizacionControlador {
     @PostMapping("/{id}/recalcular")
     public Cotizacion recalcular(@PathVariable Long id) {
         return servicio.recalcular(id);
-    }
-
-    @PostMapping("/{id}/confirmar")
-    public Cotizacion confirmar(@PathVariable Long id) {
-        return servicio.confirmar(id);
     }
 }

@@ -18,9 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MuebleControladorTest {
 
     @Autowired MockMvc mvc;
-
     @Test
-    void listarMuebles_responde200() throws Exception {
+    void listarMuebles() throws Exception {
         mvc.perform(get("/api/muebles"))
                 .andExpect(status().isOk());
     }
