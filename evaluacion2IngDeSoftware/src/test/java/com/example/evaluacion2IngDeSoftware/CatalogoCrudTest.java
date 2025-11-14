@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CatalogoCrudTest {
 
     @Autowired
-    MuebleRepositorio muebleRepo;
+    MuebleRepositorio muebleRepositorio;
 
     @Test
     void crudMueble() {
@@ -33,31 +33,31 @@ class CatalogoCrudTest {
         m.setEstado(EstadoMueble.ACTIVO);
         m.setStock(7);
         m.setPrecioBase(new BigDecimal("45000"));
-        m = muebleRepo.save(m);
+        m = muebleRepositorio.save(m);
 
         Long id = m.getId();
         assertNotNull(id, "Debe generar id al crear");
 
-        Mueble obtenido = muebleRepo.findById(id).orElseThrow();
+        Mueble obtenido = muebleRepositorio.findById(id).orElseThrow();
         assertEquals("Mesa Pino", obtenido.getNombre());
         assertEquals(EstadoMueble.ACTIVO, obtenido.getEstado());
 
         obtenido.setPrecioBase(new BigDecimal("47000"));
         obtenido.setStock(9);
-        muebleRepo.save(obtenido);
+        muebleRepositorio.save(obtenido);
 
-        Mueble actualizado = muebleRepo.findById(id).orElseThrow();
+        Mueble actualizado = muebleRepositorio.findById(id).orElseThrow();
         assertEquals(0, actualizado.getPrecioBase().compareTo(new BigDecimal("47000")));
         assertEquals(9, actualizado.getStock());
 
         actualizado.setEstado(EstadoMueble.INACTIVO);
-        muebleRepo.save(actualizado);
-        Mueble inactivo = muebleRepo.findById(id).orElseThrow();
+        muebleRepositorio.save(actualizado);
+        Mueble inactivo = muebleRepositorio.findById(id).orElseThrow();
         assertEquals(EstadoMueble.INACTIVO, inactivo.getEstado(), "Debe quedar INACTIVO al borrar");
 
         inactivo.setEstado(EstadoMueble.ACTIVO);
-        muebleRepo.save(inactivo);
-        Mueble reactivado = muebleRepo.findById(id).orElseThrow();
+        muebleRepositorio.save(inactivo);
+        Mueble reactivado = muebleRepositorio.findById(id).orElseThrow();
         assertEquals(EstadoMueble.ACTIVO, reactivado.getEstado(), "Debe volver a ACTIVO al restaurar");
     }
 }

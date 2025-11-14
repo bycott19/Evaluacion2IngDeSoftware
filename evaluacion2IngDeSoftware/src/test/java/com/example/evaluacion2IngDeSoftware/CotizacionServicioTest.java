@@ -33,7 +33,7 @@ class CotizacionServicioTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void inicializarValores() {
         mueble = new Mueble();
         mueble.setNombre("Silla Test");
         mueble.setTipo(TipoMueble.SILLA);

@@ -30,7 +30,7 @@ class VentaServicioTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void inicializarValores() {
         mueble = new Mueble();
         mueble.setNombre("Mesa Test");
         mueble.setTipo(TipoMueble.MESA);
